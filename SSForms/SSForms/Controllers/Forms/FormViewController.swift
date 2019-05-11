@@ -174,11 +174,41 @@ getArrayOfDecodeModel()
     }
     
     @IBAction func uploadUserDetails(_ sender: Any) {
+        self.view.endEditing(true)
        let model = GetFormModel(firstName: self.firstName, lastName: self.lastName)
         //Encode data
         let jsonData = try! JSONEncoder().encode(model)
         let encodeJsonString = String(data: jsonData, encoding: .utf8)!
         print(encodeJsonString)
+        
+        
+        
+        DispatchQueue.main.async {
+            let activityView = UIActivityIndicatorView(style: .whiteLarge)
+            activityView.center = self.view.center
+            activityView.startAnimating()
+            self.view.addSubview(activityView)
+            let myURL = URL(string: "http://77.68.84.237/HixService/EMIS.svc/FileUpload2")!
+            let request = NSMutableURLRequest(url: myURL)
+            request.httpMethod = "POST"
+            request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+            request.setValue("application/json", forHTTPHeaderField: "Accept")
+            request.httpBody = jsonData
+            let task = URLSession.shared.dataTask(with: request as URLRequest) {
+                data, response, error in
+                print(response)
+                activityView.stopAnimating()
+                self.showUploadAlert()
+                // Your completion handler code here
+            }
+            task.resume()
+        }
+        
+    }
+    private func showUploadAlert() {
+        let alert = UIAlertController(title: "SSFormIOS", message: "Form is uploaded successfully.", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
+        self.present(alert, animated: true)
     }
 }
 extension FormViewController: UICollectionViewDataSource, UICollectionViewDelegate {
